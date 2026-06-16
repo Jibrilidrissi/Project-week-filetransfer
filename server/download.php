@@ -4,7 +4,7 @@ session_start();
 
 require_once __DIR__ . '/../config/db.php';
 
-// Simpele controle voor dag 2
+// Simpele controle voor gebruiker
 if (!isset($_SESSION['can_download']) || $_SESSION['can_download'] !== true) {
     die('Je mag dit bestand niet downloaden.');
 }

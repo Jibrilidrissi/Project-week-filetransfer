@@ -2,7 +2,7 @@
 
 session_start();
 
-// Simpele toegang voor dag 2
+// Simpele toegang voor gebruiker
 $_SESSION['can_download'] = true;
 
 require_once __DIR__ . '/../config/db.php';
