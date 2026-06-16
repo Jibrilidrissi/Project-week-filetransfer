@@ -1,20 +1,8 @@
 <?php
 session_start();
 
-// Database verbinding parameters
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "filetransfer";
-
-try {
-    // Verbinding maken met de database via PDO
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    // Als de verbinding mislukt, stopt het script met een foutmelding
-    die("Verbinding mislukt: " . $e->getMessage());
-}
+// Database verbinding via config
+require_once __DIR__ . '/../config/db.php';
 
 $error = "";
 
@@ -51,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["email"] = $email;
                 $_SESSION["role"] = "user";
 
-                header("Location: voorpagina.php");
+                header("Location: ../server/voorpagina.php");
                 exit();
             } else {
                 $error = "Registratie mislukt. Probeer het opnieuw.";
@@ -72,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["email"] = $admin["email"];
                 $_SESSION["role"] = "admin";
 
-                header("Location: adminpagina.php");
+                header("Location: ../server/adminpagina.php");
                 exit();
             } else {
                 $error = "Onjuist wachtwoord";
@@ -91,7 +79,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION["email"] = $user["email"];
                     $_SESSION["role"] = "user";
 
-                    header("Location: voorpagina.php");
+                    header("Location: ../server/voorpagina.php");
                     exit();
                 } else {
                     $error = "Onjuist wachtwoord";
@@ -110,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Login</title>
-    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 

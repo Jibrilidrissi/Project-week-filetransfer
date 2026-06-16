@@ -168,6 +168,18 @@ body {
     cursor: pointer;
 }
 
+.form-help-text {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.form-help-text strong {
+    color: var(--text-color);
+}
+
 /* Alert Notification */
 .alert {
     padding: 1rem;
@@ -305,7 +317,8 @@ body {
     text-align: left;
 }
 
-.files-table th, .files-table td {
+.files-table th,
+.files-table td {
     padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--border-color);
 }
@@ -358,4 +371,3 @@ body {
 .btn--share:hover {
     background-color: rgba(255, 255, 255, 0.15);
 }
-

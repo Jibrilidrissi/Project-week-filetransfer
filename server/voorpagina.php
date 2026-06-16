@@ -1,31 +1,21 @@
 <?php
 session_start();
 
-// Sessie-controle: als de gebruiker niet is ingelogd, stuur hem terug naar index.php
+// Sessie-controle: als de gebruiker niet is ingelogd, stuur hem terug naar index.php in client
 if (!isset($_SESSION["user_id"])) {
-    header("Location: index.php");
+    header("Location: ../client/index.php");
     exit();
 }
 
-// Database verbinding parameters
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "filetransfer";
-
-try {
-    // Verbinding maken met de database via PDO
-    $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Verbinding mislukt: " . $e->getMessage());
-}
+// Database verbinding via config
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/config.php';
 
 $melding = "";
 $meldingType = ""; // "success" of "error"
 
-// Vaste uploadmap definiëren en aanmaken als deze nog niet bestaat
-$uploadDir = __DIR__ . '/uploads/';
+// Vaste uploadmap definiëren (in de root) en aanmaken als deze nog niet bestaat
+$uploadDir = __DIR__ . '/../uploads/';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
@@ -38,30 +28,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
     // Controleer of er geen fouten waren tijdens de upload
     if ($file["error"] === UPLOAD_ERR_OK) {
         $originalName = basename($file["name"]);
-        
-        // Genereer een unieke bestandsnaam om overschrijven te voorkomen
-        $ext = pathinfo($originalName, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         $baseName = pathinfo($originalName, PATHINFO_FILENAME);
-        $uniqueName = $baseName . "_" . time() . ($ext ? "." . $ext : "");
         
-        $targetPath = $uploadDir . $uniqueName;
+        // CONTROLES:
+        // 1. Controleer bestandstype
+        if (!in_array($ext, ALLOWED_EXTENSIONS)) {
+            $melding = "Dit bestandstype (." . htmlspecialchars($ext) . ") is niet toegestaan.";
+            $meldingType = "error";
+        }
+        // 2. Controleer maximale bestandsgrootte
+        elseif ($file["size"] > MAX_FILE_SIZE) {
+            $melding = "Het bestand is te groot. Maximale grootte is " . (MAX_FILE_SIZE / (1024 * 1024)) . " MB.";
+            $meldingType = "error";
+        }
+        else {
+            // Unieke naam genereren
+            $uniqueName = $baseName . "_" . time() . ($ext ? "." . $ext : "");
+            $targetPath = $uploadDir . $uniqueName;
 
-        // Verplaats het bestand van de tijdelijke locatie naar de uploadmap
-        if (move_uploaded_file($file["tmp_name"], $targetPath)) {
-            try {
-                // Sla de gegevens op in de database tabel 'files' met het user_id van de ingelogde gebruiker
-                $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, uploaded_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
-                $stmt->execute([$originalName, $beschrijving, $uniqueName, $_SESSION["user_id"]]);
-                
-                $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol geüpload!";
-                $meldingType = "success";
-            } catch (PDOException $e) {
-                $melding = "Fout bij het opslaan in de database: " . $e->getMessage();
+            // Verplaats het bestand van de tijdelijke locatie naar de uploadmap
+            if (move_uploaded_file($file["tmp_name"], $targetPath)) {
+                try {
+                    // Sla de gegevens op in de database tabel 'files' met het user_id van de ingelogde gebruiker
+                    $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, uploaded_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
+                    $stmt->execute([$originalName, $beschrijving, $uniqueName, $_SESSION["user_id"]]);
+                    
+                    $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol geüpload!";
+                    $meldingType = "success";
+                } catch (PDOException $e) {
+                    $melding = "Fout bij het opslaan in de database: " . $e->getMessage();
+                    $meldingType = "error";
+                }
+            } else {
+                $melding = "Er is een fout opgetreden bij het opslaan van het bestand op de server.";
                 $meldingType = "error";
             }
-        } else {
-            $melding = "Er is een fout opgetreden bij het opslaan van het bestand op de server.";
-            $meldingType = "error";
         }
     } else {
         // Bepaal de foutmelding op basis van de PHP upload error code
@@ -97,7 +99,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="UTF-8">
     <title>Voorpagina - Bestandsupload</title>
-    <link rel="stylesheet" href="style/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="../client/style.css">
 </head>
 <body>
 
@@ -106,7 +108,7 @@ try {
             <h1 class="header__logo">FileTransfer</h1>
             <div class="header__user">
                 <span>Ingelogd als: <strong><?php echo htmlspecialchars($_SESSION["email"]); ?></strong></span>
-                <a href="index.php?action=logout" class="btn btn--logout">Uitloggen</a>
+                <a href="../client/index.php?action=logout" class="btn btn--logout">Uitloggen</a>
             </div>
         </div>
     </header>
@@ -127,6 +129,10 @@ try {
                 <div class="form-group">
                     <label for="bestand" class="form-label">Kies een bestand:</label>
                     <input type="file" name="bestand" id="bestand" required class="form-control-file">
+                    <p class="form-help-text">
+                        Max. bestandsgrootte: <strong><?php echo (MAX_FILE_SIZE / (1024 * 1024)); ?> MB</strong><br>
+                        Toegestane bestandstypes: <strong><?php echo implode(', ', ALLOWED_EXTENSIONS); ?></strong>
+                    </p>
                 </div>
                 
                 <div class="form-group">
@@ -161,7 +167,7 @@ try {
                                     <td><?php echo htmlspecialchars($bestand["name"]); ?></td>
                                     <td><?php echo htmlspecialchars($bestand["beschrijving"] ?: '-'); ?></td>
                                     <td>
-                                        <a href="uploads/<?php echo urlencode($bestand["data"]); ?>" download="<?php echo htmlspecialchars($bestand["name"]); ?>" class="btn btn--download">
+                                        <a href="../uploads/<?php echo urlencode($bestand["data"]); ?>" download="<?php echo htmlspecialchars($bestand["name"]); ?>" class="btn btn--download">
                                             Download
                                         </a>
                                     </td>

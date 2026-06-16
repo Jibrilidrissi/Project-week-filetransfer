@@ -1,25 +1,18 @@
 <?php
-// Database verbinding parameters
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "filetransfer";
+// Database verbinding via config
+require_once __DIR__ . '/../config/db.php';
 
 if (isset($_GET['id'])) {
     $id = (int)$_GET['id'];
     
     try {
-        // Maak verbinding met de database via PDO
-        $conn = new PDO("mysql:host=$servername;dbname=$dbname", $username, $password);
-        $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        
         // Zoek het bestand op in de database
         $stmt = $conn->prepare("SELECT * FROM files WHERE id = ?");
         $stmt->execute([$id]);
         $file = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($file) {
-            $filepath = __DIR__ . '/uploads/' . $file['data'];
+            $filepath = __DIR__ . '/../uploads/' . $file['data'];
             
             // Controleer of het bestand daadwerkelijk bestaat op de server
             if (file_exists($filepath)) {
