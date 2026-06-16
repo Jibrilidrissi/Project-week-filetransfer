@@ -48,27 +48,25 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if (empty($files)): ?>
             <p>Er zijn nog geen bestanden.</p>
         <?php else: ?>
-            <table>
-                <tr>
-                    <th>Naam</th>
-                    <th>Type</th>
-                    <th>Grootte</th>
-                    <th>MD5</th>
-                    <th>Actie</th>
-                </tr>
-
+            <div class="file-list">
                 <?php foreach ($files as $file): ?>
-                    <tr>
-                        <td><?= htmlspecialchars($file['original_name']) ?></td>
-                        <td><?= htmlspecialchars($file['file_type']) ?></td>
-                        <td><?= round($file['file_size'] / 1024, 2) ?> KB</td>
-                        <td><?= htmlspecialchars(substr($file['md5_hash'], 0, 8)) ?>...</td>
-                        <td>
-                            <a href="../server/download.php?id=<?= $file['id'] ?>">Download</a>
-                        </td>
-                    </tr>
+                    <div class="file-card">
+                        <div class="file-info">
+                            <h3><?= htmlspecialchars($file['original_name']) ?></h3>
+
+                            <div class="file-meta">
+                                <span><?= htmlspecialchars(strtoupper($file['file_type'])) ?></span>
+                                <span><?= round($file['file_size'] / 1024, 2) ?> KB</span>
+                                <span>MD5: <?= htmlspecialchars(substr($file['md5_hash'], 0, 8)) ?>...</span>
+                            </div>
+                        </div>
+
+                        <a class="download-btn" href="../server/download.php?id=<?= $file['id'] ?>">
+                            Download
+                        </a>
+                    </div>
                 <?php endforeach; ?>
-            </table>
+            </div>
         <?php endif; ?>
     </section>
 </main>
