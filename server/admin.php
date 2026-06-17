@@ -99,17 +99,20 @@ try {
     $totalUsers = $totalFiles = $totalSize = 0;
 }
 
-// Alle gebruikers
+// Alle gebruikers — gebruik SELECT * zodat ontbrekende kolommen geen fatale fout geven
+$usersError = '';
 try {
-    $users = $conn->query('SELECT id, email, created_at FROM users ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
+    $users = $conn->query('SELECT * FROM users ORDER BY id DESC')->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $users = [];
+    $usersError = $e->getMessage();
 }
 
 // Alle bestanden (met eigenaar via JOIN)
+$filesError = '';
 try {
     $stmt = $conn->query(
-        'SELECT f.id, f.name, f.data, f.uploaded_date, u.email AS eigenaar
+        'SELECT f.id, f.name, f.data, f.uploaded_date, f.password, u.email AS eigenaar
          FROM files f
          LEFT JOIN users u ON f.user_id = u.id
          ORDER BY f.id DESC'
@@ -117,6 +120,7 @@ try {
     $allesBestanden = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $allesBestanden = [];
+    $filesError = $e->getMessage();
 }
 
 // Helper: formatteer bytes naar leesbare grootte
@@ -127,11 +131,7 @@ function formatBytes(int $bytes): string {
     return $bytes . ' B';
 }
 
-// Bouw de deellink-basis URL
-$protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-$host     = $_SERVER['HTTP_HOST'];
-$dir      = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
-$basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
+
 ?>
 <!DOCTYPE html>
 <html lang="nl">
@@ -191,16 +191,21 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
             <span class="admin-section__badge"><?php echo count($users); ?></span>
         </div>
 
-        <?php if (empty($users)): ?>
+        <?php if ($usersError): ?>
+            <div class="alert alert--error alert--admin">
+                ⚠ Database-fout (gebruikers): <?php echo htmlspecialchars($usersError); ?>
+            </div>
+        <?php elseif (empty($users)): ?>
             <p class="empty-state">Geen gebruikers gevonden.</p>
         <?php else: ?>
             <div class="table-wrapper">
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>User id</th>
                             <th>E-mail</th>
                             <th>Geregistreerd op</th>
+                            <th>Wachtwoord</th>
                             <th>Actie</th>
                         </tr>
                     </thead>
@@ -209,7 +214,22 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
                             <tr>
                                 <td><?php echo (int)$user['id']; ?></td>
                                 <td><?php echo htmlspecialchars($user['email']); ?></td>
-                                <td><?php echo htmlspecialchars($user['created_at'] ?? '—'); ?></td>
+                                <td>
+                                    <?php
+                                    $rawDate = (!empty($user['Registratie_datum']) ? $user['Registratie_datum'] : null)
+                                        ?? $user['created_at']
+                                        ?? $user['registered_at']
+                                        ?? $user['register_date']
+                                        ?? $user['date']
+                                        ?? null;
+                                    echo htmlspecialchars($rawDate ? date('Y-m-d', strtotime($rawDate)) : '—');
+                                    ?>
+                                </td>
+                                <td>
+                                    <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')">
+                                        <?php echo htmlspecialchars($user['password'] ?: '—'); ?>
+                                    </span>
+                                </td>
                                 <td>
                                     <form method="POST" onsubmit="return confirm('Weet je zeker dat je deze gebruiker EN al zijn bestanden wilt verwijderen?');">
                                         <input type="hidden" name="user_id" value="<?php echo (int)$user['id']; ?>">
@@ -231,19 +251,23 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
             <span class="admin-section__badge"><?php echo count($allesBestanden); ?></span>
         </div>
 
-        <?php if (empty($allesBestanden)): ?>
+        <?php if ($filesError): ?>
+            <div class="alert alert--error alert--admin">
+                ⚠ Database-fout (bestanden): <?php echo htmlspecialchars($filesError); ?>
+            </div>
+        <?php elseif (empty($allesBestanden)): ?>
             <p class="empty-state">Nog geen bestanden geüpload.</p>
         <?php else: ?>
             <div class="table-wrapper">
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>ID</th>
                             <th>Bestandsnaam</th>
                             <th>Eigenaar</th>
                             <th>Grootte</th>
                             <th>Geüpload op</th>
-                            <th>Deellink</th>
+                            <th>Wachtwoord</th>
                             <th>Actie</th>
                         </tr>
                     </thead>
@@ -252,7 +276,6 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
                             <?php
                                 $fysiekPad   = $uploadDir . $bestand['data'];
                                 $bestandsGrootte = file_exists($fysiekPad) ? formatBytes(filesize($fysiekPad)) : '—';
-                                $shareUrl    = $basePath . '/download.php?id=' . $bestand['id'];
                             ?>
                             <tr>
                                 <td><?php echo (int)$bestand['id']; ?></td>
@@ -265,14 +288,9 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
                                 <td><?php echo $bestandsGrootte; ?></td>
                                 <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($bestand['uploaded_date']))); ?></td>
                                 <td>
-                                    <div class="share-container">
-                                        <input type="text" readonly value="<?php echo htmlspecialchars($shareUrl); ?>"
-                                               class="form-control share-input" onclick="this.select();">
-                                        <button class="btn btn--share"
-                                                onclick="copyLink('<?php echo htmlspecialchars($shareUrl, ENT_QUOTES); ?>', this)">
-                                            Kopieer
-                                        </button>
-                                    </div>
+                                    <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')">
+                                        <?php echo htmlspecialchars($bestand['password'] ?: '—'); ?>
+                                    </span>
                                 </td>
                                 <td>
                                     <form method="POST" onsubmit="return confirm('Bestand permanent verwijderen?');">
@@ -290,23 +308,7 @@ $basePath = $protocol . '://' . $host . ($dir === '/' ? '' : $dir);
 
 </main>
 
-<script>
-function copyLink(url, btn) {
-    navigator.clipboard.writeText(url).then(function () {
-        const orig = btn.textContent;
-        btn.textContent = 'Gekopieerd!';
-        btn.style.background = '#10b981';
-        btn.style.color = '#fff';
-        setTimeout(function () {
-            btn.textContent = orig;
-            btn.style.background = '';
-            btn.style.color = '';
-        }, 2000);
-    }).catch(function (err) {
-        alert('Fout bij kopiëren: ' + err);
-    });
-}
-</script>
+
 
 </body>
 </html>

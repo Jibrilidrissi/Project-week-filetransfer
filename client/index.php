@@ -29,10 +29,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($stmt->fetch()) {
             $error = "E-mailadres is al geregistreerd";
         } else {
-            // Wachtwoord veilig hashen voordat het wordt opgeslagen
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-            if ($stmt->execute([$email, $hashedPassword])) {
+            // Sla het wachtwoord in plaintext op
+            $registratieDatum = date('Y-m-d');
+            $stmt = $conn->prepare("INSERT INTO users (email, password, Registratie_datum) VALUES (?, ?, ?)");
+            if ($stmt->execute([$email, $password, $registratieDatum])) {
                 // Sessie initialiseren na succesvolle registratie
                 session_regenerate_id(true); // Voorkomt session fixation aanvallen
                 $_SESSION["user_id"] = $conn->lastInsertId();

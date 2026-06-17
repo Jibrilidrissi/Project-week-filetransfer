@@ -13,6 +13,61 @@ require_once __DIR__ . '/../config/config.php';
 
 $melding = "";
 $meldingType = ""; // "success" of "error"
+$downloadMelding = "";
+
+// Download bestand via ID en Wachtwoord verwerken
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["download_file_by_id"])) {
+    $downloadId = (int)($_POST["download_file_id"] ?? 0);
+    $downloadPassword = $_POST["download_password"] ?? '';
+    
+    if ($downloadId <= 0 || empty($downloadPassword)) {
+        $downloadMelding = "Vul a.u.b. zowel het bestand ID als het wachtwoord in.";
+    } else {
+        try {
+            // Zoek het bestand op in de database
+            $stmt = $conn->prepare("SELECT * FROM files WHERE id = ?");
+            $stmt->execute([$downloadId]);
+            $file = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($file) {
+                if ($file['password'] === $downloadPassword || password_verify($downloadPassword, $file['password'])) {
+                    $filepath = __DIR__ . '/../uploads/' . $file['data'];
+                    
+                    if (file_exists($filepath)) {
+                        // Maak opnieuw een SHA-256 hash van het bestand
+                        $currentHash = hash_file("sha256", $filepath);
+
+                        // Controleer of de hash nog hetzelfde is als in de database
+                        if ($file["file_hash"] !== null && $currentHash !== $file["file_hash"]) {
+                            $downloadMelding = "Bestand is aangepast. Download gestopt.";
+                        } else {
+                            header('Content-Description: File Transfer');
+                            header('Content-Type: application/octet-stream');
+                            header('Content-Disposition: attachment; filename="' . basename($file['name']) . '"');
+                            header('Expires: 0');
+                            header('Cache-Control: must-revalidate');
+                            header('Pragma: public');
+                            header('Content-Length: ' . filesize($filepath));
+                            
+                            ob_clean();
+                            flush();
+                            readfile($filepath);
+                            exit();
+                        }
+                    } else {
+                        $downloadMelding = "Bestand bestaat niet fysiek op de server.";
+                    }
+                } else {
+                    $downloadMelding = "Onjuist wachtwoord voor dit bestand.";
+                }
+            } else {
+                $downloadMelding = "Geen bestand gevonden met dit ID.";
+            }
+        } catch (PDOException $e) {
+            $downloadMelding = "Fout bij het ophalen van het bestand: " . $e->getMessage();
+        }
+    }
+}
 
 // Vaste uploadmap definiëren (in de root) en aanmaken als deze nog niet bestaat
 $uploadDir = __DIR__ . '/../uploads/';
@@ -24,9 +79,15 @@ if (!is_dir($uploadDir)) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
     $file = $_FILES["bestand"];
     $beschrijving = trim($_POST["beschrijving"] ?? '');
+    $filePassword = $_POST["file_password"] ?? '';
 
+    // Controleer of het wachtwoord is ingevuld
+    if (empty($filePassword)) {
+        $melding = "Een wachtwoord is verplicht om dit bestand te uploaden.";
+        $meldingType = "error";
+    }
     // Controleer of er geen fouten waren tijdens de upload
-    if ($file["error"] === UPLOAD_ERR_OK) {
+    elseif ($file["error"] === UPLOAD_ERR_OK) {
         $originalName = basename($file["name"]);
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         $baseName = pathinfo($originalName, PATHINFO_FILENAME);
@@ -53,9 +114,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
             // Maak een SHA-256 hash van het opgeslagen bestand
             $fileHash = hash_file("sha256", $targetPath);
                 try {
-                    // Sla de gegevens op in de database tabel 'files' met het user_id van de ingelogde gebruiker
-                    $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, file_hash, uploaded_date, user_id) VALUES (?, ?, ?, ?, NOW(), ?)");
-                    $stmt->execute([$originalName, $beschrijving, $uniqueName, $fileHash, $_SESSION["user_id"]]);
+                    // Sla de gegevens op in de database tabel 'files' met het user_id van de ingelogde gebruiker (inclusief wachtwoord en SHA-256 hash)
+                    $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, uploaded_date, password, file_hash, user_id) VALUES (?, ?, ?, NOW(), ?, ?, ?)");
+                    $stmt->execute([$originalName, $beschrijving, $uniqueName, $filePassword, $fileHash, $_SESSION["user_id"]]);
                     
                     $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol geüpload!";
                     $meldingType = "success";
@@ -128,27 +189,57 @@ try {
             </div>
         <?php endif; ?>
 
-        <!-- Stap 2: HTML-formulier waarmee een bestand gekozen kan worden -->
-        <section class="upload-section">
-            <h2>Bestand Uploaden</h2>
-            <form action="voorpagina.php" method="POST" enctype="multipart/form-data" class="upload-form">
-                <div class="form-group">
-                    <label for="bestand" class="form-label">Kies een bestand:</label>
-                    <input type="file" name="bestand" id="bestand" required class="form-control-file">
-                    <p class="form-help-text">
-                        Max. bestandsgrootte: <strong><?php echo (MAX_FILE_SIZE / (1024 * 1024)); ?> MB</strong><br>
-                        Toegestane bestandstypes: <strong><?php echo implode(', ', ALLOWED_EXTENSIONS); ?></strong>
-                    </p>
-                </div>
-                
-                <div class="form-group">
-                    <label for="beschrijving" class="form-label">Beschrijving (optioneel):</label>
-                    <input type="text" name="beschrijving" id="beschrijving" placeholder="Voer een korte beschrijving in" class="form-control">
-                </div>
-                
-                <button type="submit" class="btn btn--primary">Bestand Versturen</button>
-            </form>
-        </section>
+        <div class="dashboard-grid">
+            <!-- Stap 2: HTML-formulier waarmee een bestand gekozen kan worden -->
+            <section class="upload-section" style="margin-bottom: 0;">
+                <h2>Bestand Uploaden</h2>
+                <form action="voorpagina.php" method="POST" enctype="multipart/form-data" class="upload-form">
+                    <div class="form-group">
+                        <label for="bestand" class="form-label">Kies een bestand:</label>
+                        <input type="file" name="bestand" id="bestand" required class="form-control-file">
+                        <p class="form-help-text">
+                            Max. bestandsgrootte: <strong><?php echo (MAX_FILE_SIZE / (1024 * 1024)); ?> MB</strong><br>
+                            Toegestane bestandstypes: <strong><?php echo implode(', ', ALLOWED_EXTENSIONS); ?></strong>
+                        </p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="beschrijving" class="form-label">Beschrijving (optioneel):</label>
+                        <input type="text" name="beschrijving" id="beschrijving" placeholder="Voer een korte beschrijving in" class="form-control">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="file_password" class="form-label">Wachtwoord (verplicht):</label>
+                        <input type="password" name="file_password" id="file_password" required placeholder="Voer een wachtwoord in" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="btn btn--primary">Bestand Versturen</button>
+                </form>
+            </section>
+
+            <!-- Stap 3: Bestand downloaden via ID & Wachtwoord -->
+            <section class="upload-section" style="margin-bottom: 0;">
+                <h2>Bestand Downloaden via ID</h2>
+                <?php if (!empty($downloadMelding)): ?>
+                    <div class="alert alert--error" style="margin-bottom: 1.5rem; padding: 0.75rem 1rem;">
+                        <?php echo htmlspecialchars($downloadMelding); ?>
+                    </div>
+                <?php endif; ?>
+                <form action="voorpagina.php" method="POST" class="download-form">
+                    <div class="form-group">
+                        <label for="download_file_id" class="form-label">Bestand ID:</label>
+                        <input type="number" name="download_file_id" id="download_file_id" required placeholder="Voer het bestand ID in" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="download_password" class="form-label">Wachtwoord:</label>
+                        <input type="password" name="download_password" id="download_password" required placeholder="Voer het bestandswachtwoord in" class="form-control">
+                    </div>
+                    
+                    <button type="submit" name="download_file_by_id" class="btn btn--primary">Downloaden</button>
+                </form>
+            </section>
+        </div>
 
         <!-- Overzicht van geüploade bestanden -->
         <section class="files-section">
@@ -160,34 +251,25 @@ try {
                     <table class="files-table">
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Bestandsnaam</th>
                                 <th>Beschrijving</th>
-                                <th>Download</th>
-                                <th>Deellink</th>
                                 <th>Geüpload op</th>
+                                <th>Wachtwoord</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($bestanden as $bestand): ?>
                                 <tr>
+                                    <td><?php echo (int)$bestand["id"]; ?></td>
                                     <td><?php echo htmlspecialchars($bestand["name"]); ?></td>
                                     <td><?php echo htmlspecialchars($bestand["beschrijving"] ?: '-'); ?></td>
-                                    <td>
-                                        <a href="../uploads/<?php echo urlencode($bestand["data"]); ?>" download="<?php echo htmlspecialchars($bestand["name"]); ?>" class="btn btn--download">
-                                            Download
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        $dir = str_replace('\\', '/', dirname($_SERVER['PHP_SELF']));
-                                        $shareUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]" . ($dir === '/' ? '' : $dir) . "/download.php?id=" . $bestand['id'];
-                                        ?>
-                                        <div class="share-container">
-                                            <input type="text" readonly value="<?php echo htmlspecialchars($shareUrl); ?>" class="form-control share-input" onclick="this.select();">
-                                            <button class="btn btn--share" onclick="copyToClipboard('<?php echo htmlspecialchars($shareUrl); ?>', this)">Kopieer</button>
-                                        </div>
-                                    </td>
                                     <td><?php echo htmlspecialchars(date("Y-m-d", strtotime($bestand["uploaded_date"]))); ?></td>
+                                    <td>
+                                        <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')">
+                                            <?php echo htmlspecialchars($bestand["password"] ?: '—'); ?>
+                                        </span>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -197,24 +279,6 @@ try {
         </section>
 
     </main>
-
-    <script>
-    function copyToClipboard(text, button) {
-        navigator.clipboard.writeText(text).then(function() {
-            const originalText = button.textContent;
-            button.textContent = 'Gekopieerd!';
-            button.style.backgroundColor = '#10b981';
-            button.style.color = '#ffffff';
-            setTimeout(function() {
-                button.textContent = originalText;
-                button.style.backgroundColor = '';
-                button.style.color = '';
-            }, 2000);
-        }, function(err) {
-            alert('Fout bij kopiëren: ' + err);
-        });
-    }
-    </script>
 
 </body>
 </html>
