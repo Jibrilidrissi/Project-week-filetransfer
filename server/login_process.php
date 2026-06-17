@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../config/security.php';
+requireSecureConnection();
 require_once __DIR__ . '/../config/db.php';
 
 session_start();
