@@ -1,13 +1,10 @@
 <?php
 
-session_start();
+require_once __DIR__ . '/../config/auth.php';
+requireLogin();
 
 require_once __DIR__ . '/../config/db.php';
 
-// Simpele controle voor gebruiker
-if (!isset($_SESSION['can_download']) || $_SESSION['can_download'] !== true) {
-    die('Je mag dit bestand niet downloaden.');
-}
 
 // Controleer of id bestaat
 if (!isset($_GET['id'])) {
@@ -17,16 +14,27 @@ if (!isset($_GET['id'])) {
 $fileId = $_GET['id'];
 
 // Bestand zoeken in database
-$sql = "SELECT * FROM files WHERE id = :id AND can_download = 1";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([
-    ':id' => $fileId
-]);
+if (isAdmin()) {
+    $sql = "SELECT * FROM files WHERE id = :id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $fileId
+    ]);
+} else {
+    $sql = "SELECT * FROM files 
+            WHERE id = :id 
+            AND (can_download = 1 OR uploaded_by = :user_id)";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':id' => $fileId,
+        ':user_id' => $_SESSION['user_id']
+    ]);
+}
 
 $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$file) {
-    die('Bestand niet gevonden.');
+    die('Bestand niet gevonden of geen toegang..');
 }
 
 $filePath = $file['file_path'];
@@ -36,10 +44,10 @@ if (!file_exists($filePath)) {
     die('Bestand staat niet meer op de server.');
 }
 
-// MD5 opnieuw controleren
-$currentHash = md5_file($filePath);
+// SHA-256 opnieuw controleren
+$currentHash = hash_file('sha256', $filePath);
 
-if ($currentHash !== $file['md5_hash']) {
+if ($currentHash !== $file['file_hash']) {
     die('Bestand is veranderd. Download gestopt.');
 }
 
