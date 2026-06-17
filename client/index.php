@@ -1,17 +1,29 @@
 <?php
 
-session_start();
-
-// Simpele toegang voor gebruiker
-$_SESSION['can_download'] = true;
+require_once __DIR__ . '/../config/auth.php';
+requireLogin();
 
 require_once __DIR__ . '/../config/db.php';
 
 $message = $_GET['message'] ?? '';
 $type = $_GET['type'] ?? '';
 
-// Bestanden uit database halen
-$stmt = $pdo->query("SELECT * FROM files ORDER BY uploaded_at DESC");
+if (isAdmin()) {
+    $stmt = $pdo->query("SELECT files.*, users.username 
+                         FROM files 
+                         JOIN users ON files.uploaded_by = users.id 
+                         ORDER BY uploaded_at DESC");
+} else {
+    $stmt = $pdo->prepare("SELECT files.*, users.username 
+                           FROM files 
+                           JOIN users ON files.uploaded_by = users.id 
+                           WHERE files.can_download = 1 OR files.uploaded_by = :user_id
+                           ORDER BY uploaded_at DESC");
+    $stmt->execute([
+        ':user_id' => $_SESSION['user_id']
+    ]);
+}
+
 $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -26,6 +38,11 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <main class="container">
     <h1>Secure File Transfer</h1>
+    <p>
+        Ingelogd als: <?= htmlspecialchars($_SESSION['username']) ?>
+        |
+        <a href="../server/logout.php">Uitloggen</a>
+    </p>
 
     <?php if (!empty($message)): ?>
         <p class="message <?= htmlspecialchars($type) ?>">
@@ -58,6 +75,7 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <span><?= htmlspecialchars(strtoupper($file['file_type'])) ?></span>
                                 <span><?= round($file['file_size'] / 1024, 2) ?> KB</span>
                                 <span>MD5: <?= htmlspecialchars(substr($file['md5_hash'], 0, 8)) ?>...</span>
+                                <span>Uploader: <?= htmlspecialchars($file['username']) ?></span>
                             </div>
                         </div>
 
