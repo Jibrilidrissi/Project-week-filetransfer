@@ -51,24 +51,25 @@ if (!move_uploaded_file($file['tmp_name'], $filePath)) {
     exit;
 }
 
-// MD5 hash maken voor simpele controle
-$md5Hash = md5_file($filePath);
+// SHA-256 hash voor integriteitscontrole
+$fileHash = hash_file('sha256', $filePath);
 
 // Bestandinformatie opslaan in database
 $sql = "INSERT INTO files 
-        (original_name, stored_name, file_path, file_type, file_size, md5_hash)
+        (uploaded_by, original_name, stored_name, file_path, file_type, file_size, file_hash)
         VALUES 
-        (:original_name, :stored_name, :file_path, :file_type, :file_size, :md5_hash)";
+        (:uploaded_by, :original_name, :stored_name, :file_path, :file_type, :file_size, :file_hash)";
 
 $stmt = $pdo->prepare($sql);
 
 $stmt->execute([
+    ':uploaded_by' => $_SESSION['user_id'],
     ':original_name' => $originalName,
     ':stored_name' => $storedName,
     ':file_path' => $filePath,
     ':file_type' => $extension,
     ':file_size' => $file['size'],
-    ':md5_hash' => $md5Hash
+    ':file_hash' => $fileHash
 ]);
 
 header('Location: ../client/index.php?message=Bestand succesvol geüpload&type=success');
