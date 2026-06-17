@@ -15,8 +15,9 @@ $type = $_GET['type'] ?? '';
 <body>
 
 <main class="container">
-    <section class="card">
+    <section class="card login-card">
         <h1>Inloggen</h1>
+        <p>Log in om bestanden te uploaden of downloaden.</p>
 
         <?php if (!empty($message)): ?>
             <p class="message <?= htmlspecialchars($type) ?>">
@@ -24,12 +25,12 @@ $type = $_GET['type'] ?? '';
             </p>
         <?php endif; ?>
 
-        <form action="../server/login_process.php" method="POST">
-            <label>Gebruikersnaam</label>
-            <input type="text" name="username" required>
+        <form class="login-form" action="../server/login_process.php" method="POST">
+            <label for="username">Gebruikersnaam</label>
+            <input type="text" name="username" id="username" required>
 
-            <label>Wachtwoord</label>
-            <input type="password" name="password" required>
+            <label for="password">Wachtwoord</label>
+            <input type="password" name="password" id="password" required>
 
             <button type="submit">Inloggen</button>
         </form>

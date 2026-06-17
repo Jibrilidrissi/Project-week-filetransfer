@@ -74,7 +74,7 @@ $files = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <div class="file-meta">
                                 <span><?= htmlspecialchars(strtoupper($file['file_type'])) ?></span>
                                 <span><?= round($file['file_size'] / 1024, 2) ?> KB</span>
-                                <span>MD5: <?= htmlspecialchars(substr($file['md5_hash'], 0, 8)) ?>...</span>
+                                <span>SH-256: <?= htmlspecialchars(substr($file['file_hash'], 0, 8)) ?>...</span>
                                 <span>Uploader: <?= htmlspecialchars($file['username']) ?></span>
                             </div>
                         </div>
