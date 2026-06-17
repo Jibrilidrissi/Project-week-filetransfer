@@ -146,13 +146,23 @@ function formatBytes(int $bytes): string {
 <header class="header">
     <div class="header__container header__container--wide">
         <div class="header__brand">
-            <h1 class="header__logo">FileTransfer</h1>
-            <span class="badge--admin">ADMIN</span>
+            <a href="voorpagina.php" class="header__logo">
+                <svg class="header__logo-icon" xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <span>FileTransfer</span>
+            </a>
+            <span class="badge--admin">ADMIN PANEL</span>
         </div>
         <div class="header__user header__nav">
-            <span>Ingelogd als: <strong><?php echo htmlspecialchars($_SESSION['email']); ?></strong></span>
-            <a href="voorpagina.php" class="btn btn--back">← Dashboard</a>
-            <a href="../client/index.php?action=logout" class="btn btn--logout">Uitloggen</a>
+            <span>Logged in as: <strong><?php echo htmlspecialchars($_SESSION['email']); ?></strong></span>
+            <a href="voorpagina.php" class="btn btn--back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                Dashboard
+            </a>
+            <a href="../client/index.php?action=logout" class="btn btn--logout">Sign Out</a>
         </div>
     </div>
 </header>
@@ -161,59 +171,92 @@ function formatBytes(int $bytes): string {
 
     <?php if ($melding): ?>
         <div class="alert alert--<?php echo $meldingType; ?> alert--admin">
-            <?php echo htmlspecialchars($melding); ?>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span><?php echo htmlspecialchars($melding); ?></span>
         </div>
     <?php endif; ?>
 
-    <!-- ── Statistieken ───────────────────────────────────────────── -->
+    <!-- ── Stats Panel ───────────────────────────────────────────── -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-card__icon">👥</div>
-            <div class="stat-card__value"><?php echo (int)$totalUsers; ?></div>
-            <div class="stat-card__label">Gebruikers</div>
+            <div class="stat-card__content">
+                <div>
+                    <div class="stat-card__value"><?php echo (int)$totalUsers; ?></div>
+                    <div class="stat-card__label">Users Registered</div>
+                </div>
+                <div class="stat-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+            </div>
         </div>
+        
         <div class="stat-card">
-            <div class="stat-card__icon">📁</div>
-            <div class="stat-card__value"><?php echo (int)$totalFiles; ?></div>
-            <div class="stat-card__label">Bestanden</div>
+            <div class="stat-card__content">
+                <div>
+                    <div class="stat-card__value"><?php echo (int)$totalFiles; ?></div>
+                    <div class="stat-card__label">Files Uploaded</div>
+                </div>
+                <div class="stat-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                </div>
+            </div>
         </div>
+
         <div class="stat-card">
-            <div class="stat-card__icon">💾</div>
-            <div class="stat-card__value"><?php echo formatBytes((int)$totalSize); ?></div>
-            <div class="stat-card__label">Totale opslagruimte</div>
+            <div class="stat-card__content">
+                <div>
+                    <div class="stat-card__value"><?php echo formatBytes((int)$totalSize); ?></div>
+                    <div class="stat-card__label">Total Disk Usage</div>
+                </div>
+                <div class="stat-card__icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- ── Gebruikersbeheer ───────────────────────────────────────── -->
     <section class="admin-section">
         <div class="admin-section__header">
-            <h2 class="admin-section__title">Gebruikersbeheer</h2>
-            <span class="admin-section__badge"><?php echo count($users); ?></span>
+            <h2 class="admin-section__title">User Administration</h2>
+            <span class="admin-section__badge"><?php echo count($users); ?> active</span>
         </div>
 
         <?php if ($usersError): ?>
             <div class="alert alert--error alert--admin">
-                ⚠ Database-fout (gebruikers): <?php echo htmlspecialchars($usersError); ?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Database error: <?php echo htmlspecialchars($usersError); ?></span>
             </div>
         <?php elseif (empty($users)): ?>
-            <p class="empty-state">Geen gebruikers gevonden.</p>
+            <p class="empty-state">No users registered in database.</p>
         <?php else: ?>
             <div class="table-wrapper">
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>User id</th>
+                            <th>User ID</th>
                             <th>E-mail</th>
-                            <th>Geregistreerd op</th>
-                            <th>Wachtwoord</th>
-                            <th>Actie</th>
+                            <th>Registration Date</th>
+                            <th>Password Passphrase</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($users as $user): ?>
                             <tr>
-                                <td><?php echo (int)$user['id']; ?></td>
-                                <td><?php echo htmlspecialchars($user['email']); ?></td>
+                                <td><code>#<?php echo (int)$user['id']; ?></code></td>
+                                <td style="font-weight: 500; color: var(--text-primary);">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <?php echo htmlspecialchars($user['email']); ?>
+                                        <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($user['email']); ?>', this)" title="Copy Email">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
                                 <td>
                                     <?php
                                     $rawDate = (!empty($user['Registratie_datum']) ? $user['Registratie_datum'] : null)
@@ -222,18 +265,28 @@ function formatBytes(int $bytes): string {
                                         ?? $user['register_date']
                                         ?? $user['date']
                                         ?? null;
-                                    echo htmlspecialchars($rawDate ? date('Y-m-d', strtotime($rawDate)) : '—');
+                                    echo htmlspecialchars($rawDate ? date('d M Y', strtotime($rawDate)) : '—');
                                     ?>
                                 </td>
                                 <td>
-                                    <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')">
-                                        <?php echo htmlspecialchars($user['password'] ?: '—'); ?>
-                                    </span>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')" title="Click to show password">
+                                            <?php echo htmlspecialchars($user['password'] ?: '—'); ?>
+                                        </span>
+                                        <?php if ($user['password']): ?>
+                                            <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($user['password']); ?>', this)" title="Copy Password">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td>
-                                    <form method="POST" onsubmit="return confirm('Weet je zeker dat je deze gebruiker EN al zijn bestanden wilt verwijderen?');">
+                                    <form method="POST" onsubmit="return confirm('Confirm deletion of this user and all associated files? This cannot be undone.');" style="display: inline;">
                                         <input type="hidden" name="user_id" value="<?php echo (int)$user['id']; ?>">
-                                        <button type="submit" name="delete_user" class="btn btn--danger">🗑 Verwijder</button>
+                                        <button type="submit" name="delete_user" class="btn btn--danger">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            Delete User
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -247,28 +300,29 @@ function formatBytes(int $bytes): string {
     <!-- ── Bestandsbeheer ─────────────────────────────────────────── -->
     <section class="admin-section">
         <div class="admin-section__header">
-            <h2 class="admin-section__title">Bestandsbeheer</h2>
-            <span class="admin-section__badge"><?php echo count($allesBestanden); ?></span>
+            <h2 class="admin-section__title">File System Administration</h2>
+            <span class="admin-section__badge"><?php echo count($allesBestanden); ?> stored</span>
         </div>
 
         <?php if ($filesError): ?>
             <div class="alert alert--error alert--admin">
-                ⚠ Database-fout (bestanden): <?php echo htmlspecialchars($filesError); ?>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Database error: <?php echo htmlspecialchars($filesError); ?></span>
             </div>
         <?php elseif (empty($allesBestanden)): ?>
-            <p class="empty-state">Nog geen bestanden geüpload.</p>
+            <p class="empty-state">No files have been transmitted yet.</p>
         <?php else: ?>
             <div class="table-wrapper">
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Bestandsnaam</th>
-                            <th>Eigenaar</th>
-                            <th>Grootte</th>
-                            <th>Geüpload op</th>
-                            <th>Wachtwoord</th>
-                            <th>Actie</th>
+                            <th>File ID</th>
+                            <th>Filename</th>
+                            <th>Owner / Uploader</th>
+                            <th>Size</th>
+                            <th>Upload Date</th>
+                            <th>Security Passkey</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -278,24 +332,42 @@ function formatBytes(int $bytes): string {
                                 $bestandsGrootte = file_exists($fysiekPad) ? formatBytes(filesize($fysiekPad)) : '—';
                             ?>
                             <tr>
-                                <td><?php echo (int)$bestand['id']; ?></td>
                                 <td>
-                                    <div class="file-name" title="<?php echo htmlspecialchars($bestand['name']); ?>">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <code>#<?php echo (int)$bestand['id']; ?></code>
+                                        <button class="copy-btn" onclick="copyToClipboard('<?php echo (int)$bestand['id']; ?>', this)" title="Copy File ID">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="file-name" title="<?php echo htmlspecialchars($bestand['name']); ?>" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                         <?php echo htmlspecialchars($bestand['name']); ?>
                                     </div>
                                 </td>
                                 <td class="owner-tag"><?php echo htmlspecialchars($bestand['eigenaar'] ?? '—'); ?></td>
-                                <td><?php echo $bestandsGrootte; ?></td>
-                                <td><?php echo htmlspecialchars(date('Y-m-d', strtotime($bestand['uploaded_date']))); ?></td>
+                                <td><span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);"><?php echo $bestandsGrootte; ?></span></td>
+                                <td><?php echo htmlspecialchars(date('d M Y', strtotime($bestand['uploaded_date']))); ?></td>
                                 <td>
-                                    <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')">
-                                        <?php echo htmlspecialchars($bestand['password'] ?: '—'); ?>
-                                    </span>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')" title="Click to show password">
+                                            <?php echo htmlspecialchars($bestand['password'] ?: '—'); ?>
+                                        </span>
+                                        <?php if ($bestand['password']): ?>
+                                            <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($bestand['password']); ?>', this)" title="Copy Passkey">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                                 <td>
-                                    <form method="POST" onsubmit="return confirm('Bestand permanent verwijderen?');">
+                                    <form method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this file?');" style="display: inline;">
                                         <input type="hidden" name="file_id" value="<?php echo (int)$bestand['id']; ?>">
-                                        <button type="submit" name="delete_file" class="btn btn--danger">🗑 Verwijder</button>
+                                        <button type="submit" name="delete_file" class="btn btn--danger">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                            Delete
+                                        </button>
                                     </form>
                                 </td>
                             </tr>
@@ -308,7 +380,6 @@ function formatBytes(int $bytes): string {
 
 </main>
 
-
-
+<script src="../client/script.js"></script>
 </body>
 </html>
