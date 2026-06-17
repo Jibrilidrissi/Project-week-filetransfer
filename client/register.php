@@ -9,15 +9,15 @@ $type = $_GET['type'] ?? '';
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Inloggen</title>
+    <title>Registreren</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <main class="container">
     <section class="card login-card">
-        <h1>Inloggen</h1>
-        <p>Log in om bestanden te uploaden of downloaden.</p>
+        <h1>Registreren</h1>
+        <p>Maak een account aan om bestanden te uploaden en downloaden.</p>
 
         <?php if (!empty($message)): ?>
             <p class="message <?= htmlspecialchars($type) ?>">
@@ -25,18 +25,22 @@ $type = $_GET['type'] ?? '';
             </p>
         <?php endif; ?>
 
-        <form class="login-form" action="../server/login_process.php" method="POST">
+        <form class="login-form" action="../server/register_process.php" method="POST">
             <label for="username">Gebruikersnaam</label>
             <input type="text" name="username" id="username" required>
 
             <label for="password">Wachtwoord</label>
             <input type="password" name="password" id="password" required>
 
-            <button type="submit">Inloggen</button>
+            <label for="confirm_password">Herhaal wachtwoord</label>
+            <input type="password" name="confirm_password" id="confirm_password" required>
+
+            <button type="submit">Registreren</button>
         </form>
+
         <p class="auth-link">
-            Nog geen account?
-            <a href="register.php">Registreren</a>
+            Heb je al een account?
+            <a href="login.php">Inloggen</a>
         </p>
     </section>
 </main>

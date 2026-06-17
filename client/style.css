@@ -157,3 +157,20 @@ a {
 .login-form button:hover {
     background-color: #1d4ed8;
 }
+
+.auth-link {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 14px;
+}
+
+.auth-link a {
+    color: #2563eb;
+    background: none;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.auth-link a:hover {
+    color: #1d4ed8;
+}
