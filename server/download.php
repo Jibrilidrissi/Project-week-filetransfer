@@ -16,6 +16,15 @@ if (isset($_GET['id'])) {
             
             // Controleer of het bestand daadwerkelijk bestaat op de server
             if (file_exists($filepath)) {
+                // Maak opnieuw een SHA-256 hash van het bestand
+                $currentHash = hash_file("sha256", $filepath);
+
+                // Controleer of de hash nog hetzelfde is als in de database
+                if ($currentHash !== $file["file_hash"]) {
+                    http_response_code(400);
+                    echo "Bestand is aangepast. Download gestopt.";
+                    exit;
+                }
                 // Stuur de benodigde headers voor een veilige bestandsoverdracht
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/octet-stream');

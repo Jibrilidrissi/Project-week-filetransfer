@@ -49,10 +49,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
 
             // Verplaats het bestand van de tijdelijke locatie naar de uploadmap
             if (move_uploaded_file($file["tmp_name"], $targetPath)) {
+
+            // Maak een SHA-256 hash van het opgeslagen bestand
+            $fileHash = hash_file("sha256", $targetPath);
                 try {
                     // Sla de gegevens op in de database tabel 'files' met het user_id van de ingelogde gebruiker
-                    $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, uploaded_date, user_id) VALUES (?, ?, ?, NOW(), ?)");
-                    $stmt->execute([$originalName, $beschrijving, $uniqueName, $_SESSION["user_id"]]);
+                    $stmt = $conn->prepare("INSERT INTO files (name, beschrijving, data, file_hash, uploaded_date, user_id) VALUES (?, ?, ?, ?, NOW(), ?)");
+                    $stmt->execute([$originalName, $beschrijving, $uniqueName, $fileHash, $_SESSION["user_id"]]);
                     
                     $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol geüpload!";
                     $meldingType = "success";
