@@ -108,6 +108,9 @@ try {
             <h1 class="header__logo">FileTransfer</h1>
             <div class="header__user">
                 <span>Ingelogd als: <strong><?php echo htmlspecialchars($_SESSION["email"]); ?></strong></span>
+                <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+                    <a href="admin.php" class="btn btn--admin-panel">⚙ Admin Paneel</a>
+                <?php endif; ?>
                 <a href="../client/index.php?action=logout" class="btn btn--logout">Uitloggen</a>
             </div>
         </div>

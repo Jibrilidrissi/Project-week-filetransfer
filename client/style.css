@@ -371,3 +371,241 @@ body {
 .btn--share:hover {
     background-color: rgba(255, 255, 255, 0.15);
 }
+
+/* Admin Panel Button */
+.btn--admin-panel {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.15));
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.35);
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.btn--admin-panel:hover {
+    background: linear-gradient(135deg, #4f46e5, #0891b2);
+    color: white;
+    border-color: transparent;
+}
+
+/* ── Admin Dashboard ────────────────────────────────────────────── */
+
+.admin-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Header wide override for admin */
+.header__container--wide {
+    max-width: 1200px;
+}
+
+/* Header logo + badge row */
+.header__brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Nav group in header (back + logout) */
+.header__nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Admin badge next to logo */
+.badge--admin {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(6, 182, 212, 0.2));
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+/* Alert inside admin (bottom margin) */
+.alert--admin {
+    margin-bottom: 1.5rem;
+}
+
+/* Stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #06b6d4);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+}
+
+.stat-card__icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.stat-card__value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #6366f1, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+}
+
+.stat-card__label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Admin section cards */
+.admin-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.admin-section__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-section__title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.admin-section__badge {
+    background: rgba(99, 102, 241, 0.15);
+    color: #a5b4fc;
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 20px;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Admin table */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    vertical-align: middle;
+    color: var(--text-color);
+}
+
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Danger button */
+.btn--danger {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 5px;
+}
+
+.btn--danger:hover {
+    background-color: var(--error);
+    color: white;
+}
+
+/* Back button */
+.btn--back {
+    background-color: rgba(255, 255, 255, 0.07);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+}
+
+.btn--back:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Truncated file name cell */
+.file-name {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Owner column */
+.owner-tag {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Horizontal scroll wrapper for wide tables */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* Empty state message */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}

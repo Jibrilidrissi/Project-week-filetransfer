@@ -13,4 +13,3 @@ Een veilige PHP bestandsupload- en deelservice.
 * `config/`: Databaseverbinding (`db.php`) en uploadlimieten (`config.php`).
 * `server/`: Uploadpagina (`voorpagina.php`) en downloadservice (`download.php`).
 * `uploads/`: Opslaglocatie van de bestanden.
-

@@ -60,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["email"] = $admin["email"];
                 $_SESSION["role"] = "admin";
 
-                header("Location: ../server/adminpagina.php");
+                header("Location: ../server/admin.php");
                 exit();
             } else {
                 $error = "Onjuist wachtwoord";
