@@ -2,13 +2,13 @@
 // Database verbinding via config
 require_once __DIR__ . '/../config/db.php';
 
-if (isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
+if (isset($_GET['file_id'])) {
+    $fileId = trim($_GET['file_id']);
     
     try {
-        // Zoek het bestand op in de database
-        $stmt = $conn->prepare("SELECT * FROM files WHERE id = ?");
-        $stmt->execute([$id]);
+        // Zoek het bestand op via het 5-cijferige file_id
+        $stmt = $conn->prepare("SELECT * FROM files WHERE file_id = ?");
+        $stmt->execute([$fileId]);
         $file = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($file) {

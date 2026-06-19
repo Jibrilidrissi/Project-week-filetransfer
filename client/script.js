@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileSizeSpan = document.querySelector('.file-item__size');
     const fileClearBtn = document.querySelector('.file-item__clear');
     const fileListHeader = document.querySelector('.file-list-header');
-    
+
     const uploadForm = document.querySelector('.upload-form');
     const progressContainer = document.querySelector('.upload-progress-container');
     const progressBar = document.querySelector('.upload-progress-bar');
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateFileInfo(file) {
         if (!fileNameSpan || !fileSizeSpan) return;
-        
+
         // Validate file extension
         const ext = file.name.split('.').pop().toLowerCase();
         if (typeof ALLOWED_EXTENSIONS !== 'undefined' && !ALLOWED_EXTENSIONS.includes(ext)) {
@@ -82,10 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Clear any previous alerts
         clearAlerts();
-        
+
         fileNameSpan.textContent = file.name;
         fileSizeSpan.textContent = formatBytes(file.size);
-        
+
         if (fileListHeader) {
             fileListHeader.textContent = '1 uploaded file';
         }
@@ -93,49 +93,68 @@ document.addEventListener('DOMContentLoaded', () => {
         // Toggle layout views
         if (startState) startState.style.display = 'none';
         if (splitLayout) splitLayout.style.display = 'grid';
-        
+
         // Auto-scroll to clear view if needed
         splitLayout.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     function showErrorAlert(message) {
-        let currentAlert = document.querySelector('.container > .alert');
-        if (currentAlert) {
-            currentAlert.className = 'alert alert--error';
-            currentAlert.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span>${message}</span>
-            `;
-        } else {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = 'alert alert--error';
-            alertDiv.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-                <span>${message}</span>
-            `;
-            const container = document.querySelector('.container');
-            container.insertBefore(alertDiv, container.firstChild);
+        // Remove any existing dynamic alert first
+        clearAlerts();
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert--error js-alert-dynamic';
+        alertDiv.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>${message}</span>
+        `;
+        // Insert at the top of .content-wrapper (the actual page layout container)
+        const wrapper = document.querySelector('.content-wrapper');
+        if (wrapper) {
+            wrapper.insertBefore(alertDiv, wrapper.firstChild);
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
     }
 
     function clearAlerts() {
-        const currentAlert = document.querySelector('.container > .alert');
-        if (currentAlert) {
-            currentAlert.remove();
+        document.querySelectorAll('.js-alert-dynamic').forEach(el => el.remove());
+    }
+
+    function showSuccessAlert(message) {
+        clearAlerts();
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert--success js-alert-dynamic';
+        alertDiv.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 8 8 12 12 16"></polyline>
+                <line x1="16" y1="12" x2="8" y2="12"></line>
+            </svg>
+            <span>${message}</span>
+        `;
+        const wrapper = document.querySelector('.content-wrapper');
+        if (wrapper) {
+            wrapper.insertBefore(alertDiv, wrapper.firstChild);
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
+        // Auto-dismiss after 6 seconds
+        setTimeout(() => alertDiv.remove(), 6000);
+    }
+
+    // Check for a pending success notification from a completed XHR upload
+    const pendingSuccess = sessionStorage.getItem('uploadSuccess');
+    if (pendingSuccess) {
+        sessionStorage.removeItem('uploadSuccess');
+        showSuccessAlert(pendingSuccess);
+        showToast('\u2713 Upload succesvol!');
     }
 
     function resetFileSelection() {
         if (fileInput) fileInput.value = '';
-        
+
         // Toggle layout views back
         if (startState) startState.style.display = 'block';
         if (splitLayout) splitLayout.style.display = 'none';
@@ -175,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             xhr.upload.addEventListener('progress', (event) => {
                 if (event.lengthComputable) {
                     const percentComplete = Math.round((event.loaded / event.total) * 100);
-                    
+
                     if (progressBar && progressPercent) {
                         progressBar.style.width = percentComplete + '%';
                         progressPercent.textContent = percentComplete + '%';
@@ -204,26 +223,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     const responseAlert = doc.querySelector('.alert');
 
                     if (responseAlert && responseAlert.classList.contains('alert--error')) {
-                        // Display error without reloading
-                        let currentAlert = document.querySelector('.container > .alert');
-                        if (currentAlert) {
-                            currentAlert.className = responseAlert.className;
-                            currentAlert.innerHTML = responseAlert.innerHTML;
-                        } else {
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = responseAlert.className;
-                            alertDiv.innerHTML = responseAlert.innerHTML;
-                            const container = document.querySelector('.container');
-                            container.insertBefore(alertDiv, container.firstChild);
+                        // Display server error using the same helper (targets .content-wrapper)
+                        clearAlerts();
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = responseAlert.className + ' js-alert-dynamic';
+                        alertDiv.innerHTML = responseAlert.innerHTML;
+                        const wrapper = document.querySelector('.content-wrapper');
+                        if (wrapper) {
+                            wrapper.insertBefore(alertDiv, wrapper.firstChild);
+                            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                         }
-                        
-                        // Scroll to alert
-                        document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
-                        
+
                         // Hide progress bar
                         if (progressContainer) progressContainer.style.display = 'none';
                     } else {
-                        // Success - let's set bar to 100% and delay a bit for visual satisfaction
+                        // Parse the success message from the server response
+                        const successAlert = doc.querySelector('.alert--success');
+                        const successMsg = successAlert
+                            ? successAlert.querySelector('span')?.textContent?.trim()
+                            : 'Bestand succesvol ge\u00fcpload!';
+
+                        // Persist the message across the page reload via sessionStorage
+                        sessionStorage.setItem('uploadSuccess', successMsg || 'Bestand succesvol ge\u00fcpload!');
+
+                        // Set bar to 100% and reload after a short visual pause
                         if (progressBar) progressBar.style.width = '100%';
                         if (progressPercent) progressPercent.textContent = '100%';
                         if (progressStatus) progressStatus.textContent = 'Transfer complete! Refreshing...';
@@ -247,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Copy to Clipboard Utility with Dynamic Toast
-    window.copyToClipboard = function(text, btnElement) {
+    window.copyToClipboard = function (text, btnElement) {
         if (!text) return;
 
         navigator.clipboard.writeText(text).then(() => {
@@ -299,4 +322,68 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.classList.remove('show');
         }, 2000);
     }
+
+    // 5. Sidebar Tab Toggling and URL query update
+    const navItems = document.querySelectorAll('.sidebar__nav-item');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    function selectTab(tabName) {
+        // Update URL query parameters
+        const url = new URL(window.location.href);
+        url.searchParams.set('tab', tabName);
+        window.history.replaceState({}, '', url.toString());
+
+        // Update active class on navigation items
+        navItems.forEach(item => {
+            if (item.getAttribute('data-tab') === tabName) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        // Update active class on tab content sections
+        tabContents.forEach(content => {
+            if (content.id === `tab-${tabName}`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const tabName = item.getAttribute('data-tab');
+            selectTab(tabName);
+
+            // Close sidebar on mobile after clicking navigation item
+            const sidebarElement = document.querySelector('.sidebar');
+            const backdropElement = document.querySelector('.sidebar-backdrop');
+            if (sidebarElement && sidebarElement.classList.contains('open')) {
+                sidebarElement.classList.remove('open');
+                if (backdropElement) backdropElement.classList.remove('show');
+            }
+        });
+    });
+
+    // 6. Mobile Sidebar Drawer Toggling
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarElement = document.querySelector('.sidebar');
+    const backdropElement = document.querySelector('.sidebar-backdrop');
+
+    if (sidebarToggle && sidebarElement) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebarElement.classList.add('open');
+            if (backdropElement) backdropElement.classList.add('show');
+        });
+    }
+
+    if (backdropElement && sidebarElement) {
+        backdropElement.addEventListener('click', () => {
+            sidebarElement.classList.remove('open');
+            backdropElement.classList.remove('show');
+        });
+    }
 });
+

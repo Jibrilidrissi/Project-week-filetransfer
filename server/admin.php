@@ -21,8 +21,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $fileId = (int) $_POST['file_id'];
 
         try {
-            // Haal bestandsnaam op voor unlink()
-            $stmt = $conn->prepare('SELECT data FROM files WHERE id = ?');
+            // Haal bestandsnaam op voor unlink() via file_id
+            $stmt = $conn->prepare('SELECT data FROM files WHERE file_id = ?');
             $stmt->execute([$fileId]);
             $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (file_exists($fysiekPad)) {
                     unlink($fysiekPad);
                 }
-                $del = $conn->prepare('DELETE FROM files WHERE id = ?');
+                $del = $conn->prepare('DELETE FROM files WHERE file_id = ?');
                 $del->execute([$fileId]);
                 $melding     = 'Bestand succesvol verwijderd.';
                 $meldingType = 'success';
@@ -112,7 +112,7 @@ try {
 $filesError = '';
 try {
     $stmt = $conn->query(
-        'SELECT f.id, f.name, f.data, f.uploaded_date, f.password, u.email AS eigenaar
+        'SELECT f.id, f.file_id, f.name, f.data, f.uploaded_date, u.email AS eigenaar
          FROM files f
          LEFT JOIN users u ON f.user_id = u.id
          ORDER BY f.id DESC'
@@ -241,7 +241,6 @@ function formatBytes(int $bytes): string {
                             <th>User ID</th>
                             <th>E-mail</th>
                             <th>Registration Date</th>
-                            <th>Password Passphrase</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -267,18 +266,6 @@ function formatBytes(int $bytes): string {
                                         ?? null;
                                     echo htmlspecialchars($rawDate ? date('d M Y', strtotime($rawDate)) : '—');
                                     ?>
-                                </td>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')" title="Click to show password">
-                                            <?php echo htmlspecialchars($user['password'] ?: '—'); ?>
-                                        </span>
-                                        <?php if ($user['password']): ?>
-                                            <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($user['password']); ?>', this)" title="Copy Password">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
                                 </td>
                                 <td>
                                     <form method="POST" onsubmit="return confirm('Confirm deletion of this user and all associated files? This cannot be undone.');" style="display: inline;">
@@ -321,7 +308,6 @@ function formatBytes(int $bytes): string {
                             <th>Owner / Uploader</th>
                             <th>Size</th>
                             <th>Upload Date</th>
-                            <th>Security Passkey</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -334,8 +320,8 @@ function formatBytes(int $bytes): string {
                             <tr>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <code>#<?php echo (int)$bestand['id']; ?></code>
-                                        <button class="copy-btn" onclick="copyToClipboard('<?php echo (int)$bestand['id']; ?>', this)" title="Copy File ID">
+                                        <code>#<?php echo htmlspecialchars($bestand['file_id']); ?></code>
+                                        <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($bestand['file_id']); ?>', this)" title="Copy File ID">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                                         </button>
                                     </div>
@@ -350,20 +336,8 @@ function formatBytes(int $bytes): string {
                                 <td><span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted);"><?php echo $bestandsGrootte; ?></span></td>
                                 <td><?php echo htmlspecialchars(date('d M Y', strtotime($bestand['uploaded_date']))); ?></td>
                                 <td>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <span class="spoiler" onclick="this.classList.toggle('spoiler--revealed')" title="Click to show password">
-                                            <?php echo htmlspecialchars($bestand['password'] ?: '—'); ?>
-                                        </span>
-                                        <?php if ($bestand['password']): ?>
-                                            <button class="copy-btn" onclick="copyToClipboard('<?php echo htmlspecialchars($bestand['password']); ?>', this)" title="Copy Passkey">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                                <td>
                                     <form method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this file?');" style="display: inline;">
-                                        <input type="hidden" name="file_id" value="<?php echo (int)$bestand['id']; ?>">
+                                        <input type="hidden" name="file_id" value="<?php echo htmlspecialchars($bestand['file_id']); ?>">
                                         <button type="submit" name="delete_file" class="btn btn--danger">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                             Delete

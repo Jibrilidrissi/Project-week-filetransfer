@@ -1,31 +1,31 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 
 :root {
-    --bg: #070B14;
-    --surface: #0D1220;
-    --surface2: #11192B;
-    --border: #22304A;
-    --border-hover: #3b4f73;
-    --text-primary: #EAF0FF;
-    --text-muted: #9AA8C7;
-    --primary: #6D5EF7;
-    --primary-hover: #8578FF;
-    --primary-glow: rgba(109, 94, 247, 0.15);
+    --bg: #05060a;
+    --surface: #0b0c11;
+    --surface2: rgba(255, 255, 255, 0.04);
+    --border: rgba(255, 255, 255, 0.085);
+    --border-hover: rgba(255, 255, 255, 0.15);
+    --text-primary: rgba(245, 245, 247, 0.95);
+    --text-muted: rgba(245, 245, 247, 0.55);
+    --primary: #b8b7ff;
+    --primary-hover: #9a98ff;
+    --primary-glow: rgba(184, 183, 255, 0.1);
     
-    --success: #2DD4BF;
-    --success-glow: rgba(45, 212, 191, 0.1);
-    --warning: #FBBF24;
-    --warning-glow: rgba(251, 191, 36, 0.1);
-    --danger: #F87171;
-    --danger-glow: rgba(248, 113, 113, 0.1);
+    --success: #a7f3d0;
+    --success-glow: rgba(167, 243, 208, 0.1);
+    --warning: #fde68a;
+    --warning-glow: rgba(253, 230, 138, 0.1);
+    --danger: #fca5a5;
+    --danger-glow: rgba(252, 165, 165, 0.1);
 
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-sans: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --radius: 12px;
-    --radius-sm: 8px;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.8);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.55);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.65);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.85);
     
     --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
     --transition-smooth: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -48,29 +48,34 @@ body {
     position: relative;
 }
 
-/* Elegant radial glow backgrounds */
-body::before {
-    content: '';
-    position: fixed;
-    top: -10%;
-    left: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(109, 94, 247, 0.07) 0%, rgba(7, 11, 20, 0) 70%);
-    z-index: -1;
-    pointer-events: none;
+/* ── Custom Scrollbar ─────────────────────────────────────────── */
+/* Webkit (Chrome, Edge, Safari) — applied globally */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
 }
 
-body::after {
-    content: '';
-    position: fixed;
-    bottom: -10%;
-    right: -10%;
-    width: 60%;
-    height: 60%;
-    background: radial-gradient(circle, rgba(45, 212, 191, 0.05) 0%, rgba(7, 11, 20, 0) 70%);
-    z-index: -1;
-    pointer-events: none;
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+/* Firefox — must be on html/body, not * */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
 }
 
 a {
@@ -122,9 +127,7 @@ a:hover {
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    background: linear-gradient(135deg, #EAF0FF 30%, var(--primary) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -171,7 +174,7 @@ a:hover {
 
 .btn--primary {
     background-color: var(--primary);
-    color: #ffffff;
+    color: #05060a;
     box-shadow: 0 4px 14px var(--primary-glow);
     width: 100%;
 }
@@ -179,7 +182,7 @@ a:hover {
 .btn--primary:hover {
     background-color: var(--primary-hover);
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(109, 94, 247, 0.3);
+    box-shadow: 0 6px 20px rgba(184, 183, 255, 0.3);
 }
 
 .btn--primary:focus-visible {
@@ -293,7 +296,8 @@ a:hover {
     left: 20px;
     right: 20px;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(109, 94, 247, 0.3), transparent);
+    background: var(--primary);
+    opacity: 0.2;
 }
 
 .upload-section:hover {
@@ -627,8 +631,8 @@ a:hover {
 .upload-progress-bar {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 100%);
-    box-shadow: 0 0 10px rgba(109, 94, 247, 0.5);
+    background: var(--primary);
+    box-shadow: 0 0 10px rgba(184, 183, 255, 0.5);
     border-radius: 3px;
     transition: width 0.1s ease;
 }
@@ -755,6 +759,27 @@ a:hover {
     overflow-x: auto;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
+    /* Thicker, styled horizontal scrollbar just for the table */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.files-table-wrapper::-webkit-scrollbar {
+    height: 3px;
+}
+
+.files-table-wrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+.files-table-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(184, 183, 255, 0.18);
+    border-radius: 100px;
+}
+
+.files-table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(184, 183, 255, 0.35);
 }
 
 .files-table {
@@ -997,7 +1022,7 @@ a:hover {
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--success));
+    background: var(--primary);
 }
 
 .stat-card:hover {
@@ -1029,9 +1054,7 @@ a:hover {
     font-size: 2.25rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary-hover) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--primary);
     line-height: 1.1;
     margin-bottom: 0.5rem;
 }
@@ -1178,7 +1201,7 @@ a:hover {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-hover));
+    background: var(--primary);
 }
 
 .login-page__card:hover {
@@ -1206,9 +1229,7 @@ a:hover {
     font-weight: 800;
     letter-spacing: -0.02em;
     text-align: center;
-    background: linear-gradient(135deg, var(--text-primary) 30%, var(--primary-hover) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: var(--text-primary);
 }
 
 .login-page__subtitle {
@@ -1365,3 +1386,306 @@ a:hover {
         padding: 0.65rem 1.25rem;
     }
 }
+
+/* ── Sidebar Layout & Navigation ───────────────────────────────── */
+.layout-wrapper {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.sidebar {
+    width: 280px;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 200;
+    padding: 2rem 1.5rem;
+    transition: transform var(--transition-smooth);
+}
+
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 1px;
+    background: var(--border);
+    pointer-events: none;
+}
+
+.sidebar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--primary);
+    margin-bottom: 2.5rem;
+}
+
+.sidebar__logo-icon {
+    width: 28px;
+    height: 28px;
+    color: var(--primary);
+}
+
+.sidebar__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-grow: 1;
+}
+
+.sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: var(--radius-sm);
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: all var(--transition-smooth);
+    width: 100%;
+    outline: none;
+}
+
+.sidebar__nav-item svg {
+    color: var(--text-muted);
+    transition: color var(--transition-smooth), transform var(--transition-smooth);
+}
+
+.sidebar__nav-item:hover {
+    color: var(--text-primary);
+    background-color: var(--surface2);
+    border-color: rgba(255, 255, 255, 0.01);
+}
+
+.sidebar__nav-item:hover svg {
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+.sidebar__nav-item.active {
+    color: var(--text-primary);
+    background-color: rgba(109, 94, 247, 0.1);
+    border-color: rgba(109, 94, 247, 0.2);
+}
+
+.sidebar__nav-item.active svg {
+    color: var(--primary-hover);
+}
+
+.sidebar__footer {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.sidebar__user-info {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.sidebar__user-email {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__user-role {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sidebar__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.btn--sidebar {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* ── Main Content Area ─────────────────────────────────────────── */
+.main-content {
+    flex-grow: 1;
+    margin-left: 280px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: transparent;
+}
+
+.content-wrapper {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 3.5rem 2.5rem;
+}
+
+.content-wrapper > .alert {
+    margin-bottom: 2rem;
+}
+
+/* ── Topbar (Mobile-Only Header) ────────────────────────────────── */
+.topbar {
+    display: none;
+    background-color: rgba(13, 18, 32, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 150;
+    width: 100%;
+}
+
+.topbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.topbar__logo {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.topbar__logo-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+}
+
+.topbar__user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+}
+
+.topbar__user span {
+    color: var(--text-muted);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+    background-color: var(--surface2);
+}
+
+/* ── Tab Layout Switcher ────────────────────────────────────────── */
+.tab-content {
+    display: none;
+    animation: slideDown var(--transition-smooth);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Force Upload/Download panels to take full container space when isolated */
+.tab-content .upload-section {
+    max-width: 100%;
+    width: 100%;
+}
+
+/* Backdrop for Mobile Sidebar Drawers */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(7, 11, 20, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 190;
+    animation: fadeIn var(--transition-fast);
+}
+
+/* ── Media Queries for Responsiveness ───────────────────────────── */
+@media (max-width: 900px) {
+    .sidebar {
+        transform: translateX(-100%);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .sidebar-backdrop.show {
+        display: block;
+    }
+    
+    .main-content {
+        margin-left: 0;
+    }
+    
+    .topbar {
+        display: flex;
+    }
+    
+    .content-wrapper {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .topbar__user span {
+        display: none;
+    }
+    .topbar__user {
+        gap: 0.5rem;
+    }
+}
