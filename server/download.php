@@ -1,6 +1,9 @@
 <?php
+session_start();
+
 // Database verbinding via config
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../config/download_log.php';
 
 if (isset($_GET['file_id'])) {
     $fileId = trim($_GET['file_id']);
@@ -25,6 +28,15 @@ if (isset($_GET['file_id'])) {
                     echo "Bestand is aangepast. Download gestopt.";
                     exit;
                 }
+
+                $downloaderEmail = $_SESSION['email'] ?? ('Anoniem (' . ($_SERVER['REMOTE_ADDR'] ?? 'onbekend') . ')');
+                logDownload(
+                    $conn,
+                    $file,
+                    isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null,
+                    $downloaderEmail
+                );
+
                 // Stuur de benodigde headers voor een veilige bestandsoverdracht
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/octet-stream');

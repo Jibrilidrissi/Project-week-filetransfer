@@ -10,6 +10,7 @@ if (!isset($_SESSION["user_id"])) {
 // Database verbinding via config
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/download_log.php';
 
 // Active tab routing logic
 $activeTab = "upload"; // default tab
@@ -57,6 +58,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["download_file_by_id"])
                         if ($file["file_hash"] !== null && $currentHash !== $file["file_hash"]) {
                             $downloadMelding = "Bestand is aangepast. Download gestopt.";
                         } else {
+                            logDownload(
+                                $conn,
+                                $file,
+                                (int) $_SESSION['user_id'],
+                                $_SESSION['email'] ?? 'Onbekend'
+                            );
+
                             header('Content-Description: File Transfer');
                             header('Content-Type: application/octet-stream');
                             header('Content-Disposition: attachment; filename="' . basename($file['name']) . '"');

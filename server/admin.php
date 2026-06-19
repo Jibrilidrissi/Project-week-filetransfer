@@ -123,6 +123,21 @@ try {
     $filesError = $e->getMessage();
 }
 
+// Downloadlog (wie, wanneer, welk bestand)
+$downloadLogsError = '';
+try {
+    $stmt = $conn->query(
+        'SELECT file_id, file_name, downloader_email, downloaded_at
+         FROM download_logs
+         ORDER BY downloaded_at DESC
+         LIMIT 100'
+    );
+    $downloadLogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $downloadLogs = [];
+    $downloadLogsError = $e->getMessage();
+}
+
 // Helper: formatteer bytes naar leesbare grootte
 function formatBytes(int $bytes): string {
     if ($bytes >= 1073741824) return round($bytes / 1073741824, 2) . ' GB';
@@ -344,6 +359,53 @@ function formatBytes(int $bytes): string {
                                         </button>
                                     </form>
                                 </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+    </section>
+
+    <!-- ── Downloadlog ──────────────────────────────────────────── -->
+    <section class="admin-section">
+        <div class="admin-section__header">
+            <h2 class="admin-section__title">Downloadlog</h2>
+            <span class="admin-section__badge"><?php echo count($downloadLogs); ?> recent</span>
+        </div>
+
+        <?php if ($downloadLogsError): ?>
+            <div class="alert alert--error alert--admin">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span>Database error: <?php echo htmlspecialchars($downloadLogsError); ?></span>
+            </div>
+        <?php elseif (empty($downloadLogs)): ?>
+            <p class="empty-state">Nog geen downloads gelogd.</p>
+        <?php else: ?>
+            <div class="table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Wanneer</th>
+                            <th>Gebruiker</th>
+                            <th>Bestand</th>
+                            <th>File ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($downloadLogs as $log): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars(date('d M Y H:i', strtotime($log['downloaded_at']))); ?></td>
+                                <td style="font-weight: 500; color: var(--text-primary);">
+                                    <?php echo htmlspecialchars($log['downloader_email']); ?>
+                                </td>
+                                <td>
+                                    <div class="file-name" title="<?php echo htmlspecialchars($log['file_name']); ?>" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                        <?php echo htmlspecialchars($log['file_name']); ?>
+                                    </div>
+                                </td>
+                                <td><code>#<?php echo htmlspecialchars($log['file_id']); ?></code></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
