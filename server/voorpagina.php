@@ -11,6 +11,7 @@ if (!isset($_SESSION["user_id"])) {
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/download_log.php';
+require_once __DIR__ . '/../config/file_service.php';
 
 // Active tab routing logic
 $activeTab = "upload"; // default tab
@@ -47,42 +48,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["download_file_by_id"])
             $file = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($file) {
-                if ($file['password'] === $downloadPassword || password_verify($downloadPassword, $file['password'])) {
-                    $filepath = __DIR__ . '/../uploads/' . $file['data'];
-                    
-                    if (file_exists($filepath)) {
-                        // Maak opnieuw een SHA-256 hash van het bestand
-                        $currentHash = hash_file("sha256", $filepath);
+                file_put_contents(__DIR__ . '/../debug_log.txt', sprintf(
+                    "[%s] DOWNLOAD: entered_password='%s' (len=%d, md5=%s), db_password_hash='%s'\n",
+                    date('Y-m-d H:i:s'),
+                    $downloadPassword,
+                    strlen($downloadPassword),
+                    md5($downloadPassword),
+                    $file['password']
+                ), FILE_APPEND);
 
-                        // Controleer of de hash nog hetzelfde is als in de database
-                        if ($file["file_hash"] !== null && $currentHash !== $file["file_hash"]) {
-                            $downloadMelding = "Bestand is aangepast. Download gestopt.";
-                        } else {
-                            logDownload(
-                                $conn,
-                                $file,
-                                (int) $_SESSION['user_id'],
-                                $_SESSION['email'] ?? 'Onbekend'
-                            );
-
-                            header('Content-Description: File Transfer');
-                            header('Content-Type: application/octet-stream');
-                            header('Content-Disposition: attachment; filename="' . basename($file['name']) . '"');
-                            header('Expires: 0');
-                            header('Cache-Control: must-revalidate');
-                            header('Pragma: public');
-                            header('Content-Length: ' . filesize($filepath));
-                            
-                            ob_clean();
-                            flush();
-                            readfile($filepath);
-                            exit();
-                        }
-                    } else {
-                        $downloadMelding = "Bestand bestaat niet fysiek op de server.";
+                $downloadError = streamSecureDownload(
+                    $file,
+                    $downloadPassword,
+                    __DIR__ . '/../uploads/',
+                    function (array $downloadedFile) use ($conn): void {
+                        logDownload(
+                            $conn,
+                            $downloadedFile,
+                            (int) $_SESSION['user_id'],
+                            $_SESSION['email'] ?? 'Onbekend'
+                        );
                     }
-                } else {
-                    $downloadMelding = "Onjuist wachtwoord voor dit bestand.";
+                );
+                if ($downloadError !== null) {
+                    $downloadMelding = $downloadError;
                 }
             } else {
                 $downloadMelding = "Geen bestand gevonden met dit ID.";
@@ -115,6 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
         $originalName = basename($file["name"]);
         $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
         $baseName = pathinfo($originalName, PATHINFO_FILENAME);
+        $baseName = pathinfo($originalName, PATHINFO_FILENAME);
         
         // CONTROLES:
         // 1. Controleer bestandstype
@@ -128,38 +118,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["bestand"])) {
             $meldingType = "error";
         }
         else {
-            // Unieke naam genereren
-            $uniqueName = $baseName . "_" . time() . ($ext ? "." . $ext : "");
-            $targetPath = $uploadDir . $uniqueName;
+            try {
+                file_put_contents(__DIR__ . '/../debug_log.txt', sprintf(
+                    "[%s] UPLOAD: password='%s' (len=%d, md5=%s)\n",
+                    date('Y-m-d H:i:s'),
+                    $filePassword,
+                    strlen($filePassword),
+                    md5($filePassword)
+                ), FILE_APPEND);
 
-            // Verplaats het bestand van de tijdelijke locatie naar de uploadmap
-            if (move_uploaded_file($file["tmp_name"], $targetPath)) {
+                $hashedPassword = password_hash($filePassword, PASSWORD_DEFAULT);
+                $stored = storeEncryptedUpload($file["tmp_name"], $hashedPassword, $uploadDir);
 
-            // Maak een SHA-256 hash van het opgeslagen bestand
-            $fileHash = hash_file("sha256", $targetPath);
-                try {
-                    // Genereer een uniek 5-cijferig file_id (10000–99999)
-                    do {
-                        $newFileId = random_int(10000, 99999);
-                        $check = $conn->prepare("SELECT COUNT(*) FROM files WHERE file_id = ?");
-                        $check->execute([$newFileId]);
-                    } while ($check->fetchColumn() > 0);
+                do {
+                    $newFileId = random_int(10000, 99999);
+                    $check = $conn->prepare("SELECT COUNT(*) FROM files WHERE file_id = ?");
+                    $check->execute([$newFileId]);
+                } while ($check->fetchColumn() > 0);
 
-                    // Hash the password before storing (same method as user login passwords)
-                    $hashedPassword = password_hash($filePassword, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("INSERT INTO files (file_id, name, beschrijving, data, uploaded_date, password, file_hash, user_id) VALUES (?, ?, ?, ?, NOW(), ?, ?, ?)");
+                $stmt->execute([
+                    $newFileId,
+                    $originalName,
+                    $beschrijving,
+                    $stored['stored_name'],
+                    $hashedPassword,
+                    $stored['file_hash'],
+                    $_SESSION["user_id"]
+                ]);
 
-                    // Sla de gegevens op inclusief het gegenereerde file_id
-                    $stmt = $conn->prepare("INSERT INTO files (file_id, name, beschrijving, data, uploaded_date, password, file_hash, user_id) VALUES (?, ?, ?, ?, NOW(), ?, ?, ?)");
-                    $stmt->execute([$newFileId, $originalName, $beschrijving, $uniqueName, $hashedPassword, $fileHash, $_SESSION["user_id"]]);
-                    
-                    $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol geüpload! File ID: " . $newFileId;
-                    $meldingType = "success";
-                } catch (PDOException $e) {
-                    $melding = "Fout bij het opslaan in de database: " . $e->getMessage();
-                    $meldingType = "error";
-                }
-            } else {
-                $melding = "Er is een fout opgetreden bij het opslaan van het bestand op de server.";
+                $melding = "Bestand '" . htmlspecialchars($originalName) . "' is succesvol versleuteld en geüpload! File ID: " . $newFileId;
+                $meldingType = "success";
+            } catch (RuntimeException $e) {
+                $melding = $e->getMessage();
+                $meldingType = "error";
+            } catch (PDOException $e) {
+                $melding = "Fout bij het opslaan in de database: " . $e->getMessage();
                 $meldingType = "error";
             }
         }
