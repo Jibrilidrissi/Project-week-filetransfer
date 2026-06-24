@@ -31,8 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } else {
             // Sla het wachtwoord in plaintext op
             $registratieDatum = date('Y-m-d');
+            // Hash het wachtwoord voordat het wordt opgeslagen
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
             $stmt = $conn->prepare("INSERT INTO users (email, password, Registratie_datum) VALUES (?, ?, ?)");
-            if ($stmt->execute([$email, $password, $registratieDatum])) {
+            if ($stmt->execute([$email, $hashedPassword, $registratieDatum])) {
                 // Sessie initialiseren na succesvolle registratie
                 session_regenerate_id(true); // Voorkomt session fixation aanvallen
                 $_SESSION["user_id"] = $conn->lastInsertId();
